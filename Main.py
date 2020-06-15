@@ -13,6 +13,6 @@ credentials, project = google.auth.default()
 dataset = 'trials-scratch'
 
 def form_trigger(request):
-    payload = request.get_json(silent=True)
-    print("Payload was:", payload)
-    return "OK"
+    # payload = request.get_json(silent=True)
+    print("Payload was:", request)
+    return 
