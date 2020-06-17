@@ -90,7 +90,7 @@ def form_trigger(request):
 
     
     #return informaiton to be sent in an email
-    return dataset_id, expiration, secret_link
+    return dataset_id, service_email, expiration, secret_link
 
 
 def check_dataset(dataset):
