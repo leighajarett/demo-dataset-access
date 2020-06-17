@@ -1,2 +1,4 @@
+__pycache__/
 # ignore the virtual envionrment
-dataset-cloud-functions/
+dataset-cloud-function/
+.vscode
