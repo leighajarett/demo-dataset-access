@@ -1,1 +1,4 @@
 *test.py
+__pycache__/
+dataset-cloud-function/
+.vscode
