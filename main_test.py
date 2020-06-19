@@ -5,7 +5,7 @@ import main
 data = {
     "email": "leigha@looker.com",
     "name": "0064400000ssT5",
-    "weeks": 3,
+    "weeks": '3',
     "type" : 'Customer / Prospect'
     }
 

@@ -49,7 +49,7 @@ def form_trigger(request):
 
     #check for weeks
     if request_json and 'weeks' in request_json:
-        weeks = request_json['weeks']
+        weeks = int(request_json['weeks'])
     
     if 'Customer' in request_type:
         schema_name = 'trial_'+name+'_scratch'
@@ -90,7 +90,7 @@ def form_trigger(request):
 
     
     #return informaiton to be sent in an email
-    return dataset_id, service_email, expiration, secret_link
+    return json.dumps({'dataset_id': dataset_id, 'service_email': service_email, 'expiration': expiration, 'secret_link': secret_link}), 200
 
 
 def check_dataset(dataset):
@@ -177,6 +177,7 @@ def update_policy(member, weeks = None, role = 'trialuser', is_new = True):
         .execute()
         )
 
+
     #if this is an existing service account, try to find its binding and remove it
     if not is_new :
         for bind in policy["bindings"]:
@@ -193,12 +194,13 @@ def update_policy(member, weeks = None, role = 'trialuser', is_new = True):
 
     if weeks is not None:
         new_binding['condition'] = {}
-        expiration_time = datetime.datetime.now() + datetime.timedelta(weeks=weeks)
-        new_binding['condition']['expression'] = 'request.time < timestamp("{}Z")'.format(expiration_time.isoformat())
+        expiration_time = (datetime.datetime.now() + datetime.timedelta(weeks=weeks)).isoformat()
+        new_binding['condition']['expression'] = 'request.time < timestamp("{}Z")'.format(expiration_time)
         new_binding['condition']['title'] = 'Expiration'
         
     policy["bindings"].append(new_binding)
-
+    policy["version"] = 3
+    
     policy = (
         service.projects()
         .setIamPolicy(resource=project, body={"policy": policy})
@@ -221,13 +223,8 @@ def create_key(service_account_email, name, email, request_type):
         -Adds it to a secret
         -Shares the secret with an email and return the link to view the secret
     '''
-
     service = googleapiclient.discovery.build(
         'iam', 'v1', credentials=credentials)
-
-    key = service.projects().serviceAccounts().keys().create(
-        name='projects/-/serviceAccounts/' + service_account_email, body={}
-        ).execute()
 
     secret_client = secretmanager.SecretManagerServiceClient()
     parent = secret_client.project_path(project)
@@ -241,7 +238,13 @@ def create_key(service_account_email, name, email, request_type):
             secret_exists = True 
             print('Secret already exists')
 
+
+
     if not secret_exists:
+        key = service.projects().serviceAccounts().keys().create(
+            name='projects/-/serviceAccounts/' + service_account_email, body={}
+            ).execute()
+
         response = secret_client.create_secret(parent, secret_id, {
             'replication': {
                 'automatic': {},
